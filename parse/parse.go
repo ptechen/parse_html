@@ -9,6 +9,7 @@ type FilterParams struct {
 	Selector string                   `json:"selector"`
 	Finds    []string                 `json:"finds"`
 	Type     string                   `json:"type"`
+	SubFinds []string                 `json:"sub_finds"`
 	Keys     map[string]*FilterParams `json:"keys"`
 	Last     bool                     `json:"last"`
 	First    bool                     `json:"first"`
@@ -44,28 +45,35 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 	return res, err
 }
 
-func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
-	s := dom
-	text := ""
-	if len(params.Finds) > 0 {
-		for i := 0; i < len(params.Finds); i++ {
-			find := params.Finds[i]
+func finds(finds []string, s *goquery.Selection) *goquery.Selection {
+	if len(finds) > 0 {
+		for i := 0; i < len(finds); i++ {
+			find := finds[i]
 			s = s.Find(find)
 		}
 	}
+	return s
+}
+
+func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
+	s := dom
+	text := ""
 
 	if params.Selector != "" {
 		s.Find(params.Selector)
 	}
 
+	s = finds(params.Finds, s)
+
 	if params.Type == "list" {
 		resList := make([]interface{}, 0, 10)
 		s.Each(func(i int, ss *goquery.Selection) {
+			ss = finds(params.SubFinds, ss)
 			res := make(map[string]interface{})
 			if params.Keys != nil {
 				for k, v := range params.Keys {
 					if params.HasClass != "" {
-						hasClass := s.HasClass(params.HasClass)
+						hasClass := ss.HasClass(params.HasClass)
 						if hasClass {
 							res[k] = content(ss, v)
 						}
@@ -77,7 +85,7 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 			} else {
 
 				if params.HasClass != "" {
-					hasClass := s.HasClass(params.HasClass)
+					hasClass := ss.HasClass(params.HasClass)
 					if hasClass {
 						r := content(ss, &FilterParams{
 							Deletes:  params.Deletes,
@@ -94,7 +102,6 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 
 					resList = append(resList, r)
 				}
-
 
 			}
 
