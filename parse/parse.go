@@ -16,7 +16,7 @@ type FilterParams struct {
 	HasClass string                   `json:"has_class"`
 	Attr     string                   `json:"attr"`
 	Split    *Split                   `json:"split"`
-	Contains []string                 `json:"contains"`
+	Contains string                 `json:"contains"`
 	Deletes  []string                 `json:"deletes"`
 	Replaces []*Replace               `json:"replaces"`
 }
@@ -47,9 +47,18 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 		if k == "manual" {
 
 		} else {
-			res[k] = content(dom.Selection, v)
+			data := content(dom.Selection, v)
+			dataStr, ok := data.(*string)
+			if ok {
+				if data != "" {
+					res[k] = dataStr
+				}
+			} else {
+				if data != "" {
+					res[k] = data
+				}
+			}
 		}
-
 	}
 
 	return res, err

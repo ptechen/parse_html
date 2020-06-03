@@ -49,12 +49,9 @@ func clear(text string, params *FilterParams) string {
 
 	}
 
-	if len(params.Contains) > 0 {
-		for i := 0; i < len(params.Contains); i++ {
-			contain := params.Contains[i]
-			if !strings.Contains(text, contain) {
-				return ""
-			}
+	if params.Contains != "" {
+		if !strings.Contains(text, params.Contains) {
+			return ""
 		}
 	}
 
