@@ -7,6 +7,7 @@ import (
 
 type FilterParams struct {
 	Selector string     `json:"selector"`
+	Finds    []string   `json:"finds"`
 	Attr     string     `json:"attr"`
 	Split    *Split     `json:"split"`
 	Contains []string   `json:"contains"`
@@ -38,15 +39,28 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 }
 
 func content(dom *goquery.Document, params *FilterParams) (text string) {
-	if params.Attr == "" {
-		text = dom.Find(params.Selector).Text()
-	} else {
+	s := dom.Selection
+	if len(params.Finds) > 0 {
+		for i := 0; i < len(params.Finds); i++ {
+			find := params.Finds[i]
+			s = s.Find(find)
+		}
+	}
+
+	if params.Selector != "" {
+		s.Find(params.Selector)
+	}
+
+	if params.Attr != "" {
 		ok := false
-		text, ok = dom.Find(params.Selector).Attr(params.Attr)
+		text, ok = s.Attr(params.Attr)
 		if !ok {
 			return ""
 		}
+	} else {
+		text = s.Text()
 	}
+
 	if params.Split != nil {
 		text = strings.Split(text, params.Split.Key)[params.Split.Index]
 	}

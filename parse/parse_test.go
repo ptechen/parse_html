@@ -9,11 +9,12 @@ import (
 func TestParseHtml(t *testing.T) {
 	params := make(map[string]*FilterParams)
 	params["val"] = &FilterParams{
-		Selector: "#job-view-enterprise > div.wrap.clearfix > div.clearfix > div.main > div.about-position > div:nth-child(2) > div.clearfix > div.job-title-left > p.job-item-title",
+		//Selector: "#job-view-enterprise > div.wrap.clearfix > div.clearfix > div.main > div.about-position > div:nth-child(2) > div.clearfix > div.job-title-left > p.job-item-title",
 		Split: &Split{
 			Key:   "\n",
 			Index: 0,
 		},
+		Finds: []string{".job-title-left", ".job-item-title"},
 	}
 	dataBytes, err := ioutil.ReadFile("index.html")
 	if err != nil {
