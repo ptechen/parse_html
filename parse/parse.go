@@ -103,6 +103,7 @@ func content(dom *goquery.Selection, params *FilterParams, index... int) (ins in
 				r := content(ss, &FilterParams{
 					Deletes:  params.Deletes,
 					Replaces: params.Replaces,
+					Contains: params.Contains,
 				})
 
 				resList = append(resList, r, i)
