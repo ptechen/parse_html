@@ -105,14 +105,19 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 			}  else {
 				text = strings.ReplaceAll(text, curDelete, "")
 			}
-
 		}
 	}
 
 	if len(params.Replaces) > 0 {
 		for i := 0; i < len(params.Replaces); i++ {
 			rep := params.Replaces[i]
-			text = strings.ReplaceAll(text, rep.Before, rep.After)
+			if rep.Before == "\\n" {
+				text = strings.ReplaceAll(text, "\n", rep.After)
+			} else if rep.Before == "\\t" {
+				text = strings.ReplaceAll(text, "\t", rep.After)
+			}  else {
+				text = strings.ReplaceAll(text, rep.Before, rep.After)
+			}
 		}
 	}
 	return text
