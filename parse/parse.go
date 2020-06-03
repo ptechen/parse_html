@@ -8,7 +8,7 @@ import (
 type FilterParams struct {
 	Selector string     `json:"selector"`
 	Attr     string     `json:"attr"`
-	Split    *Split      `json:"split"`
+	Split    *Split     `json:"split"`
 	Contains []string   `json:"contains"`
 	Deletes  []string   `json:"deletes"`
 	Replaces []*Replace `json:"replaces"`
