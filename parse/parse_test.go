@@ -1,4 +1,4 @@
-package parse_html
+package parse
 
 import (
 	"fmt"
