@@ -6,19 +6,21 @@ import (
 )
 
 type FilterParams struct {
-	Selector string                   `json:"selector"`
-	Finds    []string                 `json:"finds"`
-	Type     string                   `json:"type"`
-	Keys     map[string]*FilterParams `json:"keys"`
-	Last     bool                     `json:"last"`
-	First    bool                     `json:"first"`
-	Eq       int                      `json:"eq"`
-	HasClass string                   `json:"has_class"`
-	Attr     string                   `json:"attr"`
-	Split    *Split                   `json:"split"`
-	Contains string                 `json:"contains"`
-	Deletes  []string                 `json:"deletes"`
-	Replaces []*Replace               `json:"replaces"`
+	Selector   string                   `json:"selector"`
+	Finds      []string                 `json:"finds"`
+	TowFinds   []string                 `json:"tow_finds"`
+	ThreeFinds []string                 `json:"three_finds"`
+	Type       string                   `json:"type"`
+	Keys       map[string]*FilterParams `json:"keys"`
+	Last       bool                     `json:"last"`
+	First      bool                     `json:"first"`
+	Eq         int                      `json:"eq"`
+	HasClass   string                   `json:"has_class"`
+	Attr       string                   `json:"attr"`
+	Split      *Split                   `json:"split"`
+	Contains   string                   `json:"contains"`
+	Deletes    []string                 `json:"deletes"`
+	Replaces   []*Replace               `json:"replaces"`
 }
 
 type Tag struct {
@@ -27,7 +29,7 @@ type Tag struct {
 }
 
 type Split struct {
-	Keys []string
+	Keys  []string
 	Key   string `json:"key"`
 	Index int    `json:"index"`
 }
@@ -51,7 +53,7 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 			dataStr, ok := data.(*string)
 			if ok {
 				if data != "" {
-					res[k] = dataStr
+					res[k] = *dataStr
 				}
 			} else {
 				if data != "" {
@@ -81,13 +83,18 @@ func selection(s *goquery.Selection, selector string) *goquery.Selection {
 	return s
 }
 
-func content(dom *goquery.Selection, params *FilterParams, index... int) (ins interface{}) {
+func content(dom *goquery.Selection, params *FilterParams, index ...int) (ins interface{}) {
 	s := dom
 	text := ""
 
 	s = selection(s, params.Selector)
 
 	s = finds(s, params.Finds)
+
+	if params.Type == "contains" {
+		text = contains(s, params)
+		return text
+	}
 
 	if params.Type == "list" {
 		resList := make([]interface{}, 0, 10)
@@ -99,16 +106,14 @@ func content(dom *goquery.Selection, params *FilterParams, index... int) (ins in
 				}
 				resList = append(resList, res, i)
 			} else {
-
 				r := content(ss, &FilterParams{
 					Deletes:  params.Deletes,
 					Replaces: params.Replaces,
-					Contains: params.Contains,
 				})
 
 				resList = append(resList, r, i)
-
 			}
+
 		})
 		return resList
 	}
@@ -122,5 +127,43 @@ func content(dom *goquery.Selection, params *FilterParams, index... int) (ins in
 	text = getText(s, params)
 
 	text = clear(text, params)
+	return text
+}
+
+func contains(s *goquery.Selection, params *FilterParams) (text string) {
+	if len(params.TowFinds) == 0 {
+		s.Each(func(i int, ss *goquery.Selection) {
+			r := content(s, &FilterParams{
+				Deletes:  params.Deletes,
+				Replaces: params.Replaces,
+				Contains: params.Contains,
+			})
+			rr, ok := r.(*string)
+			if ok {
+				if *rr != "" {
+					text = *rr
+				}
+			}
+		})
+	} else {
+		s.Each(func(i int, ss *goquery.Selection) {
+			ss = finds(ss, params.TowFinds)
+			lable := ss.Text()
+			if strings.Contains(lable, params.Contains) {
+				r := content(s, &FilterParams{
+					Finds:    params.ThreeFinds,
+					Deletes:  params.Deletes,
+					Replaces: params.Replaces,
+				})
+				rr, ok := r.(*string)
+				if ok {
+					if *rr != "" {
+						text = *rr
+					}
+				}
+			}
+		})
+	}
+
 	return text
 }
