@@ -164,7 +164,7 @@ func lastFirstEq(s *goquery.Selection, params *FilterParams) *goquery.Selection 
 	}
 
 	if params.Eq != 0 {
-		s = s.Eq(params.Eq)
+		s = s.Eq(params.Eq - 1)
 	}
 	return s
 }
