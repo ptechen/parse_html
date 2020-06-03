@@ -6,13 +6,18 @@ import (
 )
 
 type FilterParams struct {
-	Selector string     `json:"selector"`
-	Finds    []string   `json:"finds"`
-	Attr     string     `json:"attr"`
-	Split    *Split     `json:"split"`
-	Contains []string   `json:"contains"`
-	Deletes  []string   `json:"deletes"`
-	Replaces []*Replace `json:"replaces"`
+	Selector string                   `json:"selector"`
+	Finds    []string                 `json:"finds"`
+	Type     string                   `json:"type"`
+	Keys     map[string]*FilterParams `json:"keys"`
+	Last     bool                     `json:"last"`
+	First    bool                     `json:"first"`
+	Eq       int                      `json:"eq"`
+	Attr     string                   `json:"attr"`
+	Split    *Split                   `json:"split"`
+	Contains []string                 `json:"contains"`
+	Deletes  []string                 `json:"deletes"`
+	Replaces []*Replace               `json:"replaces"`
 }
 
 type Split struct {
@@ -32,14 +37,15 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 		return res, err
 	}
 	for k, v := range params {
-		res[k] = content(dom, v)
+		res[k] = content(dom.Selection, v)
 	}
 
 	return res, err
 }
 
-func content(dom *goquery.Document, params *FilterParams) (text string) {
-	s := dom.Selection
+func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
+	s := dom
+	text := ""
 	if len(params.Finds) > 0 {
 		for i := 0; i < len(params.Finds); i++ {
 			find := params.Finds[i]
@@ -49,6 +55,30 @@ func content(dom *goquery.Document, params *FilterParams) (text string) {
 
 	if params.Selector != "" {
 		s.Find(params.Selector)
+	}
+
+	if params.Type == "list" {
+		resList := make([]interface{}, 0, 10)
+		s.Each(func(i int, selection *goquery.Selection) {
+			res := make(map[string]interface{})
+			for k, v := range params.Keys {
+				res[k] = content(selection, v)
+			}
+			resList = append(resList, res)
+		})
+		return resList
+	}
+
+	if params.Last {
+		s = s.Last()
+	}
+
+	if params.First {
+		s = s.First()
+	}
+
+	if params.Eq !=0 {
+		s = s.Eq(params.Eq)
 	}
 
 	if params.Attr != "" {

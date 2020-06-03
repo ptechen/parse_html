@@ -16,6 +16,27 @@ func TestParseHtml(t *testing.T) {
 		},
 		Finds: []string{".job-title-left", ".job-item-title"},
 	}
+
+	mapKey := make(map[string]*FilterParams)
+	mapKey["job_name"] = &FilterParams{
+		Finds:    []string{".job-info", "h3"},
+		Type:     "",
+		Keys:     nil,
+		Last:     false,
+		First:    false,
+		Eq:       0,
+		Attr:     "title",
+		Split:    nil,
+		Contains: nil,
+		Deletes:  nil,
+		Replaces: nil,
+	}
+
+	params["position_list"] = &FilterParams{
+		Finds:    []string{".sojob-list", "li"},
+		Type:     "list",
+		Keys:     mapKey,
+	}
 	dataBytes, err := ioutil.ReadFile("index.html")
 	if err != nil {
 		t.Error(err)
