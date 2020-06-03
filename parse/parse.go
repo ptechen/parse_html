@@ -13,6 +13,7 @@ type FilterParams struct {
 	Last     bool                     `json:"last"`
 	First    bool                     `json:"first"`
 	Eq       int                      `json:"eq"`
+	HasClass string                   `json:"has_class"`
 	Attr     string                   `json:"attr"`
 	Split    *Split                   `json:"split"`
 	Contains []string                 `json:"contains"`
@@ -63,15 +64,38 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 			res := make(map[string]interface{})
 			if params.Keys != nil {
 				for k, v := range params.Keys {
-					res[k] = content(ss, v)
+					if params.HasClass != "" {
+						hasClass := s.HasClass(params.HasClass)
+						if hasClass {
+							res[k] = content(ss, v)
+						}
+					} else {
+						res[k] = content(ss, v)
+					}
 				}
 				resList = append(resList, res)
 			} else {
-				r := content(ss, &FilterParams{
-					Deletes: params.Deletes,
-					Replaces: params.Replaces,
-				})
-				resList = append(resList, r)
+
+				if params.HasClass != "" {
+					hasClass := s.HasClass(params.HasClass)
+					if hasClass {
+						r := content(ss, &FilterParams{
+							Deletes:  params.Deletes,
+							Replaces: params.Replaces,
+						})
+
+						resList = append(resList, r)
+					}
+				} else {
+					r := content(ss, &FilterParams{
+						Deletes:  params.Deletes,
+						Replaces: params.Replaces,
+					})
+
+					resList = append(resList, r)
+				}
+
+
 			}
 
 		})
@@ -102,7 +126,7 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 				text = strings.ReplaceAll(text, "\n", "")
 			} else if curDelete == "\\t" {
 				text = strings.ReplaceAll(text, "\t", "")
-			}  else {
+			} else {
 				text = strings.ReplaceAll(text, curDelete, "")
 			}
 		}
@@ -115,7 +139,7 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 				text = strings.ReplaceAll(text, "\n", rep.After)
 			} else if rep.Before == "\\t" {
 				text = strings.ReplaceAll(text, "\t", rep.After)
-			}  else {
+			} else {
 				text = strings.ReplaceAll(text, rep.Before, rep.After)
 			}
 		}
@@ -132,13 +156,13 @@ func lastFirstEq(s *goquery.Selection, params *FilterParams) *goquery.Selection 
 		s = s.First()
 	}
 
-	if params.Eq !=0 {
+	if params.Eq != 0 {
 		s = s.Eq(params.Eq)
 	}
 	return s
 }
 
-func getText(s *goquery.Selection, params *FilterParams) (text string)  {
+func getText(s *goquery.Selection, params *FilterParams) (text string) {
 	if params.Attr != "" {
 		ok := false
 		text, ok = s.Attr(params.Attr)
