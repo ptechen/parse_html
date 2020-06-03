@@ -59,12 +59,18 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 
 	if params.Type == "list" {
 		resList := make([]interface{}, 0, 10)
-		s.Each(func(i int, selection *goquery.Selection) {
+		s.Each(func(i int, ss *goquery.Selection) {
 			res := make(map[string]interface{})
-			for k, v := range params.Keys {
-				res[k] = content(selection, v)
+			if params.Keys != nil {
+				for k, v := range params.Keys {
+					res[k] = content(ss, v)
+				}
+				resList = append(resList, res)
+			} else {
+				r := content(ss, &FilterParams{})
+				resList = append(resList, r)
 			}
-			resList = append(resList, res)
+
 		})
 		return resList
 	}
