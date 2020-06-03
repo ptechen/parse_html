@@ -69,27 +69,9 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 		return resList
 	}
 
-	if params.Last {
-		s = s.Last()
-	}
+	s = lastFirstEq(s, params)
 
-	if params.First {
-		s = s.First()
-	}
-
-	if params.Eq !=0 {
-		s = s.Eq(params.Eq)
-	}
-
-	if params.Attr != "" {
-		ok := false
-		text, ok = s.Attr(params.Attr)
-		if !ok {
-			return ""
-		}
-	} else {
-		text = s.Text()
-	}
+	text = getText(s, params)
 
 	if params.Split != nil {
 		text = strings.Split(text, params.Split.Key)[params.Split.Index]
@@ -116,6 +98,34 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 			rep := params.Replaces[i]
 			strings.ReplaceAll(text, rep.Before, rep.After)
 		}
+	}
+	return text
+}
+
+func lastFirstEq(s *goquery.Selection, params *FilterParams) *goquery.Selection {
+	if params.Last {
+		s = s.Last()
+	}
+
+	if params.First {
+		s = s.First()
+	}
+
+	if params.Eq !=0 {
+		s = s.Eq(params.Eq)
+	}
+	return s
+}
+
+func getText(s *goquery.Selection, params *FilterParams) (text string)  {
+	if params.Attr != "" {
+		ok := false
+		text, ok = s.Attr(params.Attr)
+		if !ok {
+			return ""
+		}
+	} else {
+		text = s.Text()
 	}
 	return text
 }
