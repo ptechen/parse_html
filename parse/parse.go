@@ -98,7 +98,14 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 	if len(params.Deletes) > 0 {
 		for i := 0; i < len(params.Deletes); i++ {
 			curDelete := params.Deletes[i]
-			text = strings.ReplaceAll(text, curDelete, "")
+			if curDelete == "\\n" {
+				text = strings.ReplaceAll(text, "\n", "")
+			} else if curDelete == "\\t" {
+				text = strings.ReplaceAll(text, "\t", "")
+			}  else {
+				text = strings.ReplaceAll(text, curDelete, "")
+			}
+
 		}
 	}
 
