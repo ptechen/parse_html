@@ -67,7 +67,10 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 				}
 				resList = append(resList, res)
 			} else {
-				r := content(ss, &FilterParams{})
+				r := content(ss, &FilterParams{
+					Deletes: params.Deletes,
+					Replaces: params.Replaces,
+				})
 				resList = append(resList, r)
 			}
 
