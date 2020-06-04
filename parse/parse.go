@@ -18,9 +18,15 @@ type FilterParams struct {
 	HasClass string                   `json:"has_class"`
 	Attr     string                   `json:"attr"`
 	Split    *Split                   `json:"split"`
-	Contains []string                 `json:"contains"`
+	Contains *Contain                 `json:"contains"`
 	Deletes  []string                 `json:"deletes"`
 	Replaces []*Replace               `json:"replaces"`
+}
+
+type Contain struct {
+	Key      string   `json:"key"`
+	HasClass string   `json:"has_class"`
+	Finds    []string `json:"finds"`
 }
 
 type Split struct {
@@ -41,10 +47,53 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 		return res, err
 	}
 	for k, v := range params {
-		res[k] = content(dom.Selection, v)
+		if v.Type == "contains_list" {
+			res[k] = containsList(dom.Selection, v)
+		} else {
+			res[k] = content(dom.Selection, v)
+		}
+
 	}
 
 	return res, err
+}
+
+func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
+	s := dom
+	text := ""
+
+	if params.Selector != "" {
+		s.Find(params.Selector)
+	}
+
+	s = finds(params.Finds, s)
+	s.Each(func(i int, selection *goquery.Selection) {
+		ss := selection.Clone()
+		if len(params.Contains.Finds) > 0 {
+			ss = finds(params.Contains.Finds, ss)
+		}
+		if params.Contains.HasClass != "" && params.Contains.Key == ""{
+			flag := ss.HasClass(params.Contains.HasClass)
+			if flag {
+				text = ss.Text()
+			}
+		} else if params.Contains.Key != "" && params.Contains.HasClass == ""{
+			if strings.Contains(ss.Text(), params.Contains.Key) {
+				text = ss.Text()
+			}
+		} else if params.Contains.Key != "" && params.Contains.HasClass != "" {
+			flag := ss.HasClass(params.Contains.HasClass)
+			if flag {
+				if strings.Contains(ss.Text(), params.Contains.Key) {
+					text = ss.Text()
+				}
+			}
+		}
+	})
+
+	text = splitDeletesReplace(text, params)
+
+	return text
 }
 
 func finds(finds []string, s *goquery.Selection) *goquery.Selection {
@@ -115,65 +164,7 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 
 	text = getText(s, params)
 
-	if params.Split != nil {
-		if params.Split.EnableIndex {
-			if params.Split.Key == "\\n" {
-				text = strings.Split(text, "\n")[params.Split.Index]
-			} else if params.Split.Key == "\\t" {
-				text = strings.Split(text, "\t")[params.Split.Index]
-			} else {
-				text = strings.Split(text, params.Split.Key)[params.Split.Index]
-			}
-		} else {
-			dataBytes := make([]byte, 0)
-			if params.Split.Key == "\\n" {
-				dataBytes, _ = json.Marshal(strings.Split(text, "\n"))
-				text = string(dataBytes)
-			} else if params.Split.Key == "\\t" {
-				dataBytes, _ = json.Marshal(strings.Split(text, "\t"))
-
-			} else {
-				dataBytes, _ = json.Marshal(strings.Split(text, params.Split.Key))
-			}
-			text = string(dataBytes)
-		}
-
-	}
-
-	if len(params.Contains) > 0 {
-		for i := 0; i < len(params.Contains); i++ {
-			contain := params.Contains[i]
-			if !strings.Contains(text, contain) {
-				return ""
-			}
-		}
-	}
-
-	if len(params.Deletes) > 0 {
-		for i := 0; i < len(params.Deletes); i++ {
-			curDelete := params.Deletes[i]
-			if curDelete == "\\n" {
-				text = strings.ReplaceAll(text, "\n", "")
-			} else if curDelete == "\\t" {
-				text = strings.ReplaceAll(text, "\t", "")
-			} else {
-				text = strings.ReplaceAll(text, curDelete, "")
-			}
-		}
-	}
-
-	if len(params.Replaces) > 0 {
-		for i := 0; i < len(params.Replaces); i++ {
-			rep := params.Replaces[i]
-			if rep.Before == "\\n" {
-				text = strings.ReplaceAll(text, "\n", rep.After)
-			} else if rep.Before == "\\t" {
-				text = strings.ReplaceAll(text, "\t", rep.After)
-			} else {
-				text = strings.ReplaceAll(text, rep.Before, rep.After)
-			}
-		}
-	}
+	text = splitDeletesReplace(text, params)
 	return text
 }
 
@@ -201,6 +192,60 @@ func getText(s *goquery.Selection, params *FilterParams) (text string) {
 		}
 	} else {
 		text = s.Text()
+	}
+	return text
+}
+
+func splitDeletesReplace(text string, params *FilterParams) string {
+	if params.Split != nil {
+		if params.Split.EnableIndex {
+			if params.Split.Key == "\\n" {
+				text = strings.Split(text, "\n")[params.Split.Index]
+			} else if params.Split.Key == "\\t" {
+				text = strings.Split(text, "\t")[params.Split.Index]
+			} else {
+				text = strings.Split(text, params.Split.Key)[params.Split.Index]
+			}
+		} else {
+			dataBytes := make([]byte, 0)
+			if params.Split.Key == "\\n" {
+				dataBytes, _ = json.Marshal(strings.Split(text, "\n"))
+				text = string(dataBytes)
+			} else if params.Split.Key == "\\t" {
+				dataBytes, _ = json.Marshal(strings.Split(text, "\t"))
+
+			} else {
+				dataBytes, _ = json.Marshal(strings.Split(text, params.Split.Key))
+			}
+			text = string(dataBytes)
+		}
+
+	}
+
+	if len(params.Deletes) > 0 {
+		for i := 0; i < len(params.Deletes); i++ {
+			curDelete := params.Deletes[i]
+			if curDelete == "\\n" {
+				text = strings.ReplaceAll(text, "\n", "")
+			} else if curDelete == "\\t" {
+				text = strings.ReplaceAll(text, "\t", "")
+			} else {
+				text = strings.ReplaceAll(text, curDelete, "")
+			}
+		}
+	}
+
+	if len(params.Replaces) > 0 {
+		for i := 0; i < len(params.Replaces); i++ {
+			rep := params.Replaces[i]
+			if rep.Before == "\\n" {
+				text = strings.ReplaceAll(text, "\n", rep.After)
+			} else if rep.Before == "\\t" {
+				text = strings.ReplaceAll(text, "\t", rep.After)
+			} else {
+				text = strings.ReplaceAll(text, rep.Before, rep.After)
+			}
+		}
 	}
 	return text
 }
