@@ -54,7 +54,7 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 	}
 	for k, v := range params {
 		if v.Type == "contains_list" {
-			res[k] = containsList(dom.Selection, v)
+			res[k] = containsList( dom.Selection, v)
 		} else {
 			res[k] = content(dom.Selection, v)
 		}
@@ -87,10 +87,10 @@ func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}
 				text = ss.Text()
 			}
 		} else if params.Contains.HasAttr != nil && params.Contains.HasClass == "" && params.Contains.Key == "" {
-			val, ok := s.Attr(params.Contains.HasAttr.Key)
+			val, ok := ss.Attr(params.Contains.HasAttr.Key)
 			if ok {
 				if val == params.Contains.HasAttr.Val {
-					text = s.Text()
+					text = ss.Text()
 				}
 			}
 		} else if params.Contains.Key != "" && params.Contains.HasClass != "" && params.Contains.HasAttr == nil {
