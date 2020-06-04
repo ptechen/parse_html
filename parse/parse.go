@@ -73,8 +73,7 @@ func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}
 	}
 
 	s = finds(params.Finds, s)
-	s.Each(func(i int, selection *goquery.Selection) {
-		ss := selection.Clone()
+	s.Each(func(i int, ss *goquery.Selection) {
 		if len(params.Contains.Finds) > 0 {
 			ss = finds(params.Contains.Finds, ss)
 		}
