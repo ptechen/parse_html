@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"encoding/json"
 	"github.com/PuerkitoBio/goquery"
 	"strings"
 )
@@ -23,8 +24,9 @@ type FilterParams struct {
 }
 
 type Split struct {
-	Key   string `json:"key"`
-	Index int    `json:"index"`
+	Key         string `json:"key"`
+	Index       int    `json:"index"`
+	EnableIndex bool   `json:"enable_index"`
 }
 
 type Replace struct {
@@ -114,13 +116,28 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 	text = getText(s, params)
 
 	if params.Split != nil {
-		if params.Split.Key == "\\n" {
-			text = strings.Split(text, "\n")[params.Split.Index]
-		} else if params.Split.Key == "\\t" {
-			text = strings.Split(text, "\t")[params.Split.Index]
+		if params.Split.EnableIndex {
+			if params.Split.Key == "\\n" {
+				text = strings.Split(text, "\n")[params.Split.Index]
+			} else if params.Split.Key == "\\t" {
+				text = strings.Split(text, "\t")[params.Split.Index]
+			} else {
+				text = strings.Split(text, params.Split.Key)[params.Split.Index]
+			}
 		} else {
-			text = strings.Split(text, params.Split.Key)[params.Split.Index]
+			dataBytes := make([]byte, 0)
+			if params.Split.Key == "\\n" {
+				dataBytes, _ = json.Marshal(strings.Split(text, "\n"))
+				text = string(dataBytes)
+			} else if params.Split.Key == "\\t" {
+				dataBytes, _ = json.Marshal(strings.Split(text, "\t"))
+
+			} else {
+				dataBytes, _ = json.Marshal(strings.Split(text, params.Split.Key))
+			}
+			text = string(dataBytes)
 		}
+
 	}
 
 	if len(params.Contains) > 0 {
