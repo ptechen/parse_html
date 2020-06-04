@@ -17,7 +17,6 @@ type FilterParams struct {
 	Eq       int                      `json:"eq"`
 	HasClass string                   `json:"has_class"`
 	Attr     string                   `json:"attr"`
-	HasAttr  *HasAttr                 `json:"has_attr"`
 	Split    *Split                   `json:"split"`
 	Contains *Contain                 `json:"contains"`
 	Deletes  []string                 `json:"deletes"`
@@ -33,6 +32,7 @@ type Contain struct {
 	Key      string   `json:"key"`
 	HasClass string   `json:"has_class"`
 	Finds    []string `json:"finds"`
+	HasAttr  *HasAttr `json:"has_attr"`
 }
 
 type Split struct {
@@ -55,8 +55,6 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 	for k, v := range params {
 		if v.Type == "contains_list" {
 			res[k] = containsList(dom.Selection, v)
-		} else if v.HasAttr != nil {
-			hasAttr(dom.Selection, v)
 		} else {
 			res[k] = content(dom.Selection, v)
 		}
@@ -92,16 +90,23 @@ func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}
 		if len(params.Contains.Finds) > 0 {
 			ss = finds(params.Contains.Finds, ss)
 		}
-		if params.Contains.HasClass != "" && params.Contains.Key == "" {
+		if params.Contains.HasClass != "" && params.Contains.Key == "" && params.Contains.HasAttr == nil{
 			flag := ss.HasClass(params.Contains.HasClass)
 			if flag {
 				text = ss.Text()
 			}
-		} else if params.Contains.Key != "" && params.Contains.HasClass == "" {
+		} else if params.Contains.Key != "" && params.Contains.HasClass == "" && params.Contains.HasAttr == nil {
 			if strings.Contains(ss.Text(), params.Contains.Key) {
 				text = ss.Text()
 			}
-		} else if params.Contains.Key != "" && params.Contains.HasClass != "" {
+		} else if params.Contains.HasAttr != nil && params.Contains.HasClass == "" && params.Contains.Key == "" {
+			val, ok := s.Attr(params.Contains.HasAttr.Key)
+			if ok {
+				if val == params.Contains.HasAttr.Val {
+					text = s.Text()
+				}
+			}
+		} else if params.Contains.Key != "" && params.Contains.HasClass != "" && params.Contains.HasAttr == nil {
 			flag := ss.HasClass(params.Contains.HasClass)
 			if flag {
 				if strings.Contains(ss.Text(), params.Contains.Key) {
