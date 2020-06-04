@@ -114,7 +114,13 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 	text = getText(s, params)
 
 	if params.Split != nil {
-		text = strings.Split(text, params.Split.Key)[params.Split.Index]
+		if params.Split.Key == "\\n" {
+			text = strings.Split(text, "\n")[params.Split.Index]
+		} else if params.Split.Key == "\\t" {
+			text = strings.Split(text, "\t")[params.Split.Index]
+		} else {
+			text = strings.Split(text, params.Split.Key)[params.Split.Index]
+		}
 	}
 
 	if len(params.Contains) > 0 {
