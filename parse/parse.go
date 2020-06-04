@@ -30,9 +30,9 @@ type Contain struct {
 }
 
 type Split struct {
-	Key         string `json:"key"`
-	Index       int    `json:"index"`
-	EnableIndex bool   `json:"enable_index"`
+	Key    string `json:"key"`
+	Index  int    `json:"index"`
+	Enable bool   `json:"enable"`
 }
 
 type Replace struct {
@@ -72,12 +72,12 @@ func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}
 		if len(params.Contains.Finds) > 0 {
 			ss = finds(params.Contains.Finds, ss)
 		}
-		if params.Contains.HasClass != "" && params.Contains.Key == ""{
+		if params.Contains.HasClass != "" && params.Contains.Key == "" {
 			flag := ss.HasClass(params.Contains.HasClass)
 			if flag {
 				text = ss.Text()
 			}
-		} else if params.Contains.Key != "" && params.Contains.HasClass == ""{
+		} else if params.Contains.Key != "" && params.Contains.HasClass == "" {
 			if strings.Contains(ss.Text(), params.Contains.Key) {
 				text = ss.Text()
 			}
