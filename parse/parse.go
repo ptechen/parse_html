@@ -198,7 +198,7 @@ func getText(s *goquery.Selection, params *FilterParams) (text string) {
 
 func splitDeletesReplace(text string, params *FilterParams) string {
 	if params.Split != nil {
-		if params.Split.EnableIndex {
+		if params.Split.Enable {
 			if params.Split.Key == "\\n" {
 				text = strings.Split(text, "\n")[params.Split.Index]
 			} else if params.Split.Key == "\\t" {
