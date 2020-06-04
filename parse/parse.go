@@ -63,18 +63,6 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 
 	return res, err
 }
-func hasAttr(dom *goquery.Selection, params *FilterParams) (text string) {
-	s := dom.Clone()
-	s = finds(params.Finds, s)
-	val, ok := s.Attr(params.HasAttr.Key)
-	if !ok {
-		return ""
-	}
-	if val != params.HasAttr.Val {
-		return ""
-	}
-	return val
-}
 
 func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 	s := dom.Clone()
