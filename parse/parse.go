@@ -17,10 +17,16 @@ type FilterParams struct {
 	Eq       int                      `json:"eq"`
 	HasClass string                   `json:"has_class"`
 	Attr     string                   `json:"attr"`
+	HasAttr  *HasAttr                 `json:"has_attr"`
 	Split    *Split                   `json:"split"`
 	Contains *Contain                 `json:"contains"`
 	Deletes  []string                 `json:"deletes"`
 	Replaces []*Replace               `json:"replaces"`
+}
+
+type HasAttr struct {
+	Key string `json:"key"`
+	Val string `json:"val"`
 }
 
 type Contain struct {
@@ -49,6 +55,8 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 	for k, v := range params {
 		if v.Type == "contains_list" {
 			res[k] = containsList(dom.Selection, v)
+		} else if v.HasAttr != nil {
+			hasAttr(dom.Selection, v)
 		} else {
 			res[k] = content(dom.Selection, v)
 		}
@@ -57,9 +65,21 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 
 	return res, err
 }
+func hasAttr(dom *goquery.Selection, params *FilterParams) (text string) {
+	s := dom.Clone()
+	s = finds(params.Finds, s)
+	val, ok := s.Attr(params.HasAttr.Key)
+	if !ok {
+		return ""
+	}
+	if val != params.HasAttr.Val {
+		return ""
+	}
+	return val
+}
 
 func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
-	s := dom
+	s := dom.Clone()
 	text := ""
 
 	if params.Selector != "" {
@@ -107,7 +127,7 @@ func finds(finds []string, s *goquery.Selection) *goquery.Selection {
 }
 
 func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
-	s := dom
+	s := dom.Clone()
 	text := ""
 
 	if params.Selector != "" {
