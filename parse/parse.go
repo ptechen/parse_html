@@ -32,13 +32,13 @@ type HasAttr struct {
 type Contain struct {
 	Key      string   `json:"key" yaml:"key"`
 	HasClass string   `json:"has_class" yaml:"has_class"`
-	Lable    *Lable   `json:"lable" yaml:"lable"`
+	Label    *Label   `json:"label" yaml:"label"`
 	Finds    []string `json:"finds" yaml:"finds"`
 	Eq       int      `json:"eq" yaml:"eq"`
 	HasAttr  *HasAttr `json:"has_attr" yaml:"has_attr"`
 }
 
-type Lable struct {
+type Label struct {
 	Finds    []string `json:"finds" yaml:"finds"`
 	HasClass string   `json:"has_class" yaml:"has_class"`
 	Contains []string `json:"contains" yaml:"contains"`
@@ -77,7 +77,7 @@ func (params *FilterParams) containsList(dom *goquery.Selection) (ins interface{
 		if params.Contains.Eq != 0 {
 			ss = ss.Eq(params.Contains.Eq - 1)
 		}
-		ok := lableHasClass(lableSelector, params.Contains.Lable)
+		ok := lableHasClass(lableSelector, params.Contains.Label)
 		if params.Contains.HasClass != "" && params.Contains.Key == "" && params.Contains.HasAttr == nil {
 			flag := ss.HasClass(params.Contains.HasClass)
 			if flag {
@@ -194,7 +194,7 @@ func (params *FilterParams) content(dom *goquery.Selection) (ins interface{}) {
 	return text
 }
 
-func lableHasClass(s *goquery.Selection, params *Lable) bool {
+func lableHasClass(s *goquery.Selection, params *Label) bool {
 	s = s.Clone()
 	flag := true
 	if params != nil {
@@ -206,8 +206,8 @@ func lableHasClass(s *goquery.Selection, params *Lable) bool {
 				return false
 			}
 		}
-		if len(params.Contains) > 0{
-			for i := 0; i < len(params.Contains); i ++ {
+		if len(params.Contains) > 0 {
+			for i := 0; i < len(params.Contains); i++ {
 				if !strings.Contains(s.Text(), params.Contains[i]) {
 					return false
 				}
