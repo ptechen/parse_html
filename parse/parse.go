@@ -196,9 +196,9 @@ func (params *FilterParams) content(dom *goquery.Selection) (ins interface{}) {
 
 func lableHasClass(s *goquery.Selection, params *Lable) bool {
 	s = s.Clone()
-	s = finds(params.Finds, s)
 	flag := true
 	if params != nil {
+		s = finds(params.Finds, s)
 		if params.HasClass != "" {
 			if finds(params.Finds, s).HasClass(params.HasClass) {
 				flag = true
