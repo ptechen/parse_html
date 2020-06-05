@@ -7,20 +7,21 @@ import (
 )
 
 type FilterParams struct {
-	Selector string                   `json:"selector"`
-	Finds    []string                 `json:"finds"`
-	Type     string                   `json:"type"`
-	SubFinds []string                 `json:"sub_finds"`
-	Keys     map[string]*FilterParams `json:"keys"`
-	Last     bool                     `json:"last"`
-	First    bool                     `json:"first"`
-	Eq       int                      `json:"eq"`
-	HasClass string                   `json:"has_class"`
-	Attr     string                   `json:"attr"`
-	Split    *Split                   `json:"split"`
-	Contains *Contain                 `json:"contains"`
-	Deletes  []string                 `json:"deletes"`
-	Replaces []*Replace               `json:"replaces"`
+	Selector    string                   `json:"selector" yaml:"selector"`
+	Finds       []string                 `json:"finds" yaml:"finds"`
+	Type        string                   `json:"type" yaml:"type"`
+	SubFinds    []string                 `json:"sub_finds" yaml:"sub_finds"`
+	Keys        map[string]*FilterParams `json:"keys" yaml:"keys"`
+	Last        bool                     `json:"last" yaml:"last"`
+	First       bool                     `json:"first" yaml:"first"`
+	Eq          int                      `json:"eq" yaml:"eq"`
+	HasClass    string                   `json:"has_class" yaml:"has_class"`
+	Attr        string                   `json:"attr" yaml:"attr"`
+	Split       *Split                   `json:"split" yaml:"split"`
+	Contains    *Contain                 `json:"contains" yaml:"contains"`
+	NotContains []string                 `json:"not_contains" yaml:"not_contains"`
+	Deletes     []string                 `json:"deletes" yaml:"deletes"`
+	Replaces    []*Replace               `json:"replaces" yaml:"replaces"`
 }
 
 type HasAttr struct {
@@ -54,7 +55,7 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 	}
 	for k, v := range params {
 		if v.Type == "contains_list" {
-			res[k] = containsList( dom.Selection, v)
+			res[k] = containsList(dom.Selection, v)
 		} else {
 			res[k] = content(dom.Selection, v)
 		}
@@ -77,7 +78,7 @@ func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}
 		if len(params.Contains.Finds) > 0 {
 			ss = finds(params.Contains.Finds, ss)
 		}
-		if params.Contains.HasClass != "" && params.Contains.Key == "" && params.Contains.HasAttr == nil{
+		if params.Contains.HasClass != "" && params.Contains.Key == "" && params.Contains.HasAttr == nil {
 			flag := ss.HasClass(params.Contains.HasClass)
 			if flag {
 				text = ss.Text()
@@ -175,8 +176,25 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 	s = lastFirstEq(s, params)
 
 	text = getText(s, params)
-
+	text = notContains(text, params)
 	text = splitDeletesReplace(text, params)
+	return text
+}
+
+func notContains(text string, params *FilterParams) string {
+	if len(params.NotContains) > 0 {
+		length := len(params.NotContains)
+		nums := 0
+		for i := 0; i < length; i ++ {
+			cur := params.NotContains[i]
+			if strings.Contains(text, cur) {
+				nums += 1
+			}
+		}
+		if length == nums {
+			text = ""
+		}
+	}
 	return text
 }
 
