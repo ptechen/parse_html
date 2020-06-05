@@ -34,6 +34,7 @@ type Contain struct {
 	HasClass string   `json:"has_class" yaml:"has_class"`
 	Lable    *Lable   `json:"lable" yaml:"lable"`
 	Finds    []string `json:"finds" yaml:"finds"`
+	Eq       int      `json:"eq" yaml:"eq"`
 	HasAttr  *HasAttr `json:"has_attr" yaml:"has_attr"`
 }
 
@@ -82,6 +83,9 @@ func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}
 		lableSelector := ss.Clone()
 		if len(params.Contains.Finds) > 0 {
 			ss = finds(params.Contains.Finds, ss)
+		}
+		if params.Contains.Eq != 0 {
+			ss = ss.Eq(params.Contains.Eq)
 		}
 		ok := lableHasClass(lableSelector, params.Contains.Lable)
 		if params.Contains.HasClass != "" && params.Contains.Key == "" && params.Contains.HasAttr == nil {
