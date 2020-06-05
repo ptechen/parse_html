@@ -1,7 +1,6 @@
 package parse
 
 import (
-	"encoding/json"
 	"github.com/PuerkitoBio/goquery"
 	"strings"
 )
@@ -44,16 +43,6 @@ type Lable struct {
 	HasClass string   `json:"has_class" yaml:"has_class"`
 }
 
-type Split struct {
-	Key    string `json:"key" yaml:"key"`
-	Index  int    `json:"index" yaml:"index"`
-	Enable bool   `json:"enable" yaml:"enable"`
-}
-
-type Replace struct {
-	Before string `json:"before"`
-	After  string `json:"after"`
-}
 
 func ParseHtml(html string, params map[string]*FilterParams) (res map[string]interface{}, err error) {
 	res = make(map[string]interface{})
@@ -63,15 +52,15 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 	}
 	for k, v := range params {
 		if v.Type == "contains_list" {
-			res[k] = containsList(dom.Selection, v)
+			res[k] = v.containsList(dom.Selection)
 		} else {
-			res[k] = content(dom.Selection, v)
+			res[k] = v.content(dom.Selection)
 		}
 	}
 	return res, err
 }
 
-func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
+func (params *FilterParams) containsList(dom *goquery.Selection) (ins interface{}) {
 	s := dom.Clone()
 	text := ""
 
@@ -127,7 +116,7 @@ func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}
 		}
 	})
 
-	text = splitDeletesReplace(text, params)
+	text = params.splitDeletesReplace(text)
 
 	return text
 }
@@ -142,7 +131,7 @@ func finds(finds []string, s *goquery.Selection) *goquery.Selection {
 	return s
 }
 
-func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
+func (params *FilterParams) content(dom *goquery.Selection) (ins interface{}) {
 	s := dom.Clone()
 	text := ""
 
@@ -162,10 +151,10 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 					if params.HasClass != "" {
 						hasClass := ss.HasClass(params.HasClass)
 						if hasClass {
-							res[k] = content(ss, v)
+							res[k] = v.content(ss)
 						}
 					} else {
-						res[k] = content(ss, v)
+						res[k] = v.content(ss)
 					}
 				}
 				resList = append(resList, res)
@@ -174,18 +163,20 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 				if params.HasClass != "" {
 					hasClass := ss.HasClass(params.HasClass)
 					if hasClass {
-						r := content(ss, &FilterParams{
+						cur := &FilterParams{
 							Deletes:  params.Deletes,
 							Replaces: params.Replaces,
-						})
+						}
+						r := cur.content(ss)
 
 						resList = append(resList, r)
 					}
 				} else {
-					r := content(ss, &FilterParams{
+					cur := &FilterParams{
 						Deletes:  params.Deletes,
 						Replaces: params.Replaces,
-					})
+					}
+					r := cur.content(ss)
 
 					resList = append(resList, r)
 				}
@@ -196,11 +187,10 @@ func content(dom *goquery.Selection, params *FilterParams) (ins interface{}) {
 		return resList
 	}
 
-	s = lastFirstEq(s, params)
-
-	text = getText(s, params)
-	text = notContains(text, params)
-	text = splitDeletesReplace(text, params)
+	s = params.lastFirstEq(s)
+	text = params.getText(s)
+	text = params.notContains(text)
+	text = params.splitDeletesReplace(text)
 	return text
 }
 
@@ -216,7 +206,7 @@ func lableHasClass(s *goquery.Selection, params *Lable) bool {
 	return true
 }
 
-func notContains(text string, params *FilterParams) string {
+func (params *FilterParams) notContains(text string) string {
 	if len(params.NotContains) > 0 {
 		length := len(params.NotContains)
 		nums := 0
@@ -233,7 +223,7 @@ func notContains(text string, params *FilterParams) string {
 	return text
 }
 
-func lastFirstEq(s *goquery.Selection, params *FilterParams) *goquery.Selection {
+func (params *FilterParams) lastFirstEq(s *goquery.Selection) *goquery.Selection {
 	if params.Last {
 		s = s.Last()
 	}
@@ -248,71 +238,26 @@ func lastFirstEq(s *goquery.Selection, params *FilterParams) *goquery.Selection 
 	return s
 }
 
-func getText(s *goquery.Selection, params *FilterParams) (text string) {
+func (params *FilterParams) getText(s *goquery.Selection) (text string) {
 	if params.Attr != "" {
 		ok := false
 		text, ok = s.Attr(params.Attr)
 		if !ok {
 			return ""
 		}
-	} else if params.Html{
+	} else if params.Html {
 		text, _ = s.Html()
-	}else {
+	} else {
 		text = s.Text()
 	}
 	return text
 }
 
-func splitDeletesReplace(text string, params *FilterParams) string {
-	if params.Split != nil {
-		if params.Split.Enable {
-			if params.Split.Key == "\\n" {
-				text = strings.Split(text, "\n")[params.Split.Index]
-			} else if params.Split.Key == "\\t" {
-				text = strings.Split(text, "\t")[params.Split.Index]
-			} else {
-				text = strings.Split(text, params.Split.Key)[params.Split.Index]
-			}
-		} else {
-			dataBytes := make([]byte, 0)
-			if params.Split.Key == "\\n" {
-				dataBytes, _ = json.Marshal(strings.Split(text, "\n"))
-				text = string(dataBytes)
-			} else if params.Split.Key == "\\t" {
-				dataBytes, _ = json.Marshal(strings.Split(text, "\t"))
+func (params *FilterParams) splitDeletesReplace(text string) string {
+	text = params.Split.split(text)
 
-			} else {
-				dataBytes, _ = json.Marshal(strings.Split(text, params.Split.Key))
-			}
-			text = string(dataBytes)
-		}
+	text = deletes(params.Deletes, text)
 
-	}
-
-	if len(params.Deletes) > 0 {
-		for i := 0; i < len(params.Deletes); i++ {
-			curDelete := params.Deletes[i]
-			if curDelete == "\\n" {
-				text = strings.ReplaceAll(text, "\n", "")
-			} else if curDelete == "\\t" {
-				text = strings.ReplaceAll(text, "\t", "")
-			} else {
-				text = strings.ReplaceAll(text, curDelete, "")
-			}
-		}
-	}
-
-	if len(params.Replaces) > 0 {
-		for i := 0; i < len(params.Replaces); i++ {
-			rep := params.Replaces[i]
-			if rep.Before == "\\n" {
-				text = strings.ReplaceAll(text, "\n", rep.After)
-			} else if rep.Before == "\\t" {
-				text = strings.ReplaceAll(text, "\t", rep.After)
-			} else {
-				text = strings.ReplaceAll(text, rep.Before, rep.After)
-			}
-		}
-	}
+	text = replaces(params.Replaces, text)
 	return text
 }
