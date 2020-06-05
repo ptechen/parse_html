@@ -41,8 +41,8 @@ type Contain struct {
 type Lable struct {
 	Finds    []string `json:"finds" yaml:"finds"`
 	HasClass string   `json:"has_class" yaml:"has_class"`
+	Contains []string `json:"contains" yaml:"contains"`
 }
-
 
 func ParseHtml(html string, params map[string]*FilterParams) (res map[string]interface{}, err error) {
 	res = make(map[string]interface{})
@@ -196,28 +196,35 @@ func (params *FilterParams) content(dom *goquery.Selection) (ins interface{}) {
 
 func lableHasClass(s *goquery.Selection, params *Lable) bool {
 	s = s.Clone()
+	s = finds(params.Finds, s)
+	flag := true
 	if params != nil {
-		if finds(params.Finds, s).HasClass(params.HasClass) {
-			return true
-		} else {
-			return false
+		if params.HasClass != "" {
+			if finds(params.Finds, s).HasClass(params.HasClass) {
+				flag = true
+			} else {
+				return false
+			}
+		}
+		if len(params.Contains) > 0{
+			for i := 0; i < len(params.Contains); i ++ {
+				if !strings.Contains(s.Text(), params.Contains[i]) {
+					return false
+				}
+			}
 		}
 	}
-	return true
+	return flag
 }
 
 func (params *FilterParams) notContains(text string) string {
 	if len(params.NotContains) > 0 {
 		length := len(params.NotContains)
-		nums := 0
 		for i := 0; i < length; i++ {
 			cur := params.NotContains[i]
-			if strings.Contains(text, cur) {
-				nums += 1
+			if !strings.Contains(text, cur) {
+				return ""
 			}
-		}
-		if length == nums {
-			text = ""
 		}
 	}
 	return text
