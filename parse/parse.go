@@ -83,17 +83,16 @@ func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}
 		if len(params.Contains.Finds) > 0 {
 			ss = finds(params.Contains.Finds, ss)
 		}
+		ok := lableHasClass(lableSelector, params.Contains.Lable)
 		if params.Contains.HasClass != "" && params.Contains.Key == "" && params.Contains.HasAttr == nil {
 			flag := ss.HasClass(params.Contains.HasClass)
 			if flag {
-				ok := lableHasClass(lableSelector, params.Contains.Lable)
 				if ok {
 					text = ss.Text()
 				}
 			}
 		} else if params.Contains.Key != "" && params.Contains.HasClass == "" && params.Contains.HasAttr == nil {
 			if strings.Contains(ss.Text(), params.Contains.Key) {
-				ok := lableHasClass(lableSelector, params.Contains.Lable)
 				if ok {
 					text = ss.Text()
 				}
@@ -102,7 +101,6 @@ func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}
 			val, ok := ss.Attr(params.Contains.HasAttr.Key)
 			if ok {
 				if val == params.Contains.HasAttr.Val {
-					ok := lableHasClass(lableSelector, params.Contains.Lable)
 					if ok {
 						text = ss.Text()
 					}
@@ -112,11 +110,14 @@ func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}
 			flag := ss.HasClass(params.Contains.HasClass)
 			if flag {
 				if strings.Contains(ss.Text(), params.Contains.Key) {
-					ok := lableHasClass(lableSelector, params.Contains.Lable)
 					if ok {
 						text = ss.Text()
 					}
 				}
+			}
+		} else if params.Contains.Key == "" && params.Contains.HasClass == "" && params.Contains.HasAttr == nil {
+			if ok {
+				text = ss.Text()
 			}
 		}
 	})
