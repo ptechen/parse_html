@@ -14,6 +14,7 @@ type FilterParams struct {
 	Keys        map[string]*FilterParams `json:"keys" yaml:"keys"`
 	Last        bool                     `json:"last" yaml:"last"`
 	First       bool                     `json:"first" yaml:"first"`
+	Html        bool                     `json:"html" yaml:"html"`
 	Eq          int                      `json:"eq" yaml:"eq"`
 	HasClass    string                   `json:"has_class" yaml:"has_class"`
 	Attr        string                   `json:"attr" yaml:"attr"`
@@ -254,7 +255,9 @@ func getText(s *goquery.Selection, params *FilterParams) (text string) {
 		if !ok {
 			return ""
 		}
-	} else {
+	} else if params.Html{
+		text, _ = s.Html()
+	}else {
 		text = s.Text()
 	}
 	return text
