@@ -85,7 +85,7 @@ func containsList(dom *goquery.Selection, params *FilterParams) (ins interface{}
 			ss = finds(params.Contains.Finds, ss)
 		}
 		if params.Contains.Eq != 0 {
-			ss = ss.Eq(params.Contains.Eq)
+			ss = ss.Eq(params.Contains.Eq - 1)
 		}
 		ok := lableHasClass(lableSelector, params.Contains.Lable)
 		if params.Contains.HasClass != "" && params.Contains.Key == "" && params.Contains.HasAttr == nil {
