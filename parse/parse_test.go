@@ -26,7 +26,7 @@ func TestParseHtml(t *testing.T) {
 		First:    false,
 		Eq:       0,
 		Attr:     "title",
-		Split:    nil,
+		Splits:    nil,
 		Contains: &Contain{
 			HasAttr: &HasAttr{
 				Key: "data-selector",

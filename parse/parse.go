@@ -261,7 +261,7 @@ func (params *FilterParams) getText(s *goquery.Selection) (text string) {
 }
 
 func (params *FilterParams) splitDeletesReplace(text string) string {
-	if len(params.Splits) > 0 {
+	if params.Splits != nil && len(params.Splits) > 0 {
 		for i := 0; i < len(params.Splits); i++ {
 			curSplit := params.Splits[i]
 			text = curSplit.split(text)
