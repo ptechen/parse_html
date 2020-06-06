@@ -44,13 +44,13 @@ type Label struct {
 	Contains []string `json:"contains" yaml:"contains"`
 }
 
-func ParseHtml(html string, params map[string]*FilterParams) (res map[string]interface{}, err error) {
+func ParseHtml(html string, params *map[string]*FilterParams) (res map[string]interface{}, err error) {
 	res = make(map[string]interface{})
 	dom, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
 		return res, err
 	}
-	for k, v := range params {
+	for k, v := range *params {
 		if v.Type == "contains_list" {
 			res[k] = v.containsList(dom.Selection)
 		} else {
