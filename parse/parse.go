@@ -17,7 +17,7 @@ type FilterParams struct {
 	Eq          int                      `json:"eq" yaml:"eq"`
 	HasClass    string                   `json:"has_class" yaml:"has_class"`
 	Attr        string                   `json:"attr" yaml:"attr"`
-	Split       *Split                   `json:"split" yaml:"split"`
+	Splits      []*Split                 `json:"splits" yaml:"splits"`
 	Contains    *Contain                 `json:"contains" yaml:"contains"`
 	NotContains []string                 `json:"not_contains" yaml:"not_contains"`
 	Deletes     []string                 `json:"deletes" yaml:"deletes"`
@@ -261,7 +261,12 @@ func (params *FilterParams) getText(s *goquery.Selection) (text string) {
 }
 
 func (params *FilterParams) splitDeletesReplace(text string) string {
-	text = params.Split.split(text)
+	if len(params.Splits) > 0 {
+		for i := 0; i < len(params.Splits); i++ {
+			curSplit := params.Splits[i]
+			text = curSplit.split(text)
+		}
+	}
 
 	text = deletes(params.Deletes, text)
 
