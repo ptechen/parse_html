@@ -8,7 +8,7 @@ import (
 type FilterParams struct {
 	Selector    string                   `json:"selector" yaml:"selector"`
 	Finds       []string                 `json:"finds" yaml:"finds"`
-	PSC         *PSC                     `json:"psc" yml:"psc"`
+	Next        bool                     `json:"next" yaml:"next"`
 	Type        string                   `json:"type" yaml:"type"`
 	SubFinds    []string                 `json:"sub_finds" yaml:"sub_finds"`
 	Keys        map[string]*FilterParams `json:"keys" yaml:"keys"`
@@ -66,32 +66,6 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 	return res, err
 }
 
-func (params *FilterParams) parentSiblingChild(dom *goquery.Selection) *goquery.Selection {
-	s := dom.Clone()
-	if params.PSC == nil {
-		return s
-	}
-	if len(params.PSC.Tags) > 0 {
-		for i := 0; i < len(params.PSC.Tags); i ++ {
-			tag := params.PSC.Tags[i]
-			if tag == "parent" {
-				s = s.Parent()
-			} else if tag == "siblings" {
-				s = s.Siblings()
-			} else if tag == "children" {
-				s = s.Children()
-			} else if tag == "next" {
-				s = s.Next()
-			} else if tag == "" {
-				s = s.Prev()
-			}
-		}
-	}
-	s = finds(params.PSC.Finds, s)
-
-	return s
-}
-
 func (params *FilterParams) containsList(dom *goquery.Selection) (ins interface{}) {
 	s := dom.Clone()
 	text := ""
@@ -100,7 +74,7 @@ func (params *FilterParams) containsList(dom *goquery.Selection) (ins interface{
 	}
 
 	s = finds(params.Finds, s)
-	s = params.parentSiblingChild(s)
+	s = params.next(s)
 	s.Each(func(i int, ss *goquery.Selection) {
 		lableSelector := ss.Clone()
 		if len(params.Contains.Finds) > 0 {
@@ -163,6 +137,13 @@ func finds(finds []string, s *goquery.Selection) *goquery.Selection {
 	return s
 }
 
+func (params *FilterParams) next(s *goquery.Selection) *goquery.Selection {
+	if params.Next {
+		s = s.Next()
+	}
+	return s
+}
+
 func (params *FilterParams) content(dom *goquery.Selection) (ins interface{}) {
 	s := dom.Clone()
 	text := ""
@@ -172,7 +153,7 @@ func (params *FilterParams) content(dom *goquery.Selection) (ins interface{}) {
 	}
 
 	s = finds(params.Finds, s)
-	s = params.parentSiblingChild(s)
+	s = params.next(s)
 	if params.Type == "list" {
 		resList := make([]interface{}, 0, 10)
 		s.Each(func(i int, ss *goquery.Selection) {
