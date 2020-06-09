@@ -26,7 +26,7 @@ type FilterParams struct {
 }
 
 type PSC struct {
-	Tags  []string `json:"tags"`
+	Tags  []string `json:"tags" yaml:"tags"`
 	Finds []string `json:"finds" yaml:"finds"`
 }
 
@@ -80,6 +80,10 @@ func (params *FilterParams) parentSiblingChild(dom *goquery.Selection) *goquery.
 				s = s.Siblings()
 			} else if tag == "children" {
 				s = s.Children()
+			} else if tag == "next" {
+				s = s.Next()
+			} else if tag == "" {
+				s = s.Prev()
 			}
 		}
 	}
@@ -96,7 +100,7 @@ func (params *FilterParams) containsList(dom *goquery.Selection) (ins interface{
 	}
 
 	s = finds(params.Finds, s)
-	params.parentSiblingChild(s)
+	s = params.parentSiblingChild(s)
 	s.Each(func(i int, ss *goquery.Selection) {
 		lableSelector := ss.Clone()
 		if len(params.Contains.Finds) > 0 {
