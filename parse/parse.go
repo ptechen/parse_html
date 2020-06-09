@@ -70,7 +70,7 @@ func (params *FilterParams) Sibling(dom *goquery.Selection) *goquery.Selection {
 	if params.SubFinds == nil {
 		return s
 	}
-
+	s = s.Siblings()
 	s = finds(params.Siblings.Finds, s)
 
 	return s
