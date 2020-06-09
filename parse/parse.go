@@ -8,7 +8,7 @@ import (
 type FilterParams struct {
 	Selector    string                   `json:"selector" yaml:"selector"`
 	Finds       []string                 `json:"finds" yaml:"finds"`
-	Siblings    []*Sibling               `json:"siblings"`
+	Siblings    *Sibling               `json:"siblings"`
 	Type        string                   `json:"type" yaml:"type"`
 	SubFinds    []string                 `json:"sub_finds" yaml:"sub_finds"`
 	Keys        map[string]*FilterParams `json:"keys" yaml:"keys"`
@@ -70,9 +70,9 @@ func (params *FilterParams) Sibling(dom *goquery.Selection) *goquery.Selection {
 	if params.SubFinds == nil {
 		return s
 	}
-	for i := 0; i < len(params.Siblings); i++ {
-		s = finds(params.Siblings[i].Finds, s)
-	}
+
+	s = finds(params.Siblings.Finds, s)
+
 	return s
 }
 
