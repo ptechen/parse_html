@@ -65,7 +65,7 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 	return res, err
 }
 
-func (params *FilterParams) Sibling(dom *goquery.Selection) *goquery.Selection {
+func (params *FilterParams) sibling(dom *goquery.Selection) *goquery.Selection {
 	s := dom.Clone()
 	if params.SubFinds == nil {
 		return s
@@ -84,7 +84,7 @@ func (params *FilterParams) containsList(dom *goquery.Selection) (ins interface{
 	}
 
 	s = finds(params.Finds, s)
-	params.Sibling(s)
+	params.sibling(s)
 	s.Each(func(i int, ss *goquery.Selection) {
 		lableSelector := ss.Clone()
 		if len(params.Contains.Finds) > 0 {
@@ -156,7 +156,7 @@ func (params *FilterParams) content(dom *goquery.Selection) (ins interface{}) {
 	}
 
 	s = finds(params.Finds, s)
-
+	s = params.sibling(s)
 	if params.Type == "list" {
 		resList := make([]interface{}, 0, 10)
 		s.Each(func(i int, ss *goquery.Selection) {
