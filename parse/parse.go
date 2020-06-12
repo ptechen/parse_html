@@ -235,7 +235,7 @@ func (params *FilterParams) notContains(text string) string {
 		length := len(params.NotContains)
 		for i := 0; i < length; i++ {
 			cur := params.NotContains[i]
-			if !strings.Contains(text, cur) {
+			if strings.Contains(text, cur) {
 				return ""
 			}
 		}
