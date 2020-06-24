@@ -15,11 +15,26 @@ func (params *Split) split(text string) string {
 	if params != nil {
 		if params.Enable {
 			if params.Key == "\\n" {
-				text = strings.Split(text, "\n")[params.Index]
+				texts := strings.Split(text, "\n")
+				if len(texts) > params.Index {
+					text = texts[params.Index]
+				} else {
+					text = strings.Join(texts, ",")
+				}
 			} else if params.Key == "\\t" {
-				text = strings.Split(text, "\t")[params.Index]
+				texts := strings.Split(text, "\t")
+				if len(texts) > params.Index {
+					text = texts[params.Index]
+				} else {
+					text = strings.Join(texts, ",")
+				}
 			} else {
-				text = strings.Split(text, params.Key)[params.Index]
+				texts := strings.Split(text, params.Key)
+				if len(texts) > params.Index {
+					text = texts[params.Index]
+				} else {
+					text = strings.Join(texts, ",")
+				}
 			}
 		} else {
 			dataBytes := make([]byte, 0)
