@@ -161,7 +161,6 @@ func (params *FilterParams) content(dom *goquery.Selection) (ins interface{}) {
 	s = finds(params.Finds, s)
 	s = params.next(s)
 	if params.Type == "list" {
-		s = params.eqFinds(s)
 		resList := make([]interface{}, 0, 10)
 		s.Each(func(i int, ss *goquery.Selection) {
 			ss = finds(params.SubFinds, ss)
@@ -260,13 +259,6 @@ func (params *FilterParams) lastFirstEq(s *goquery.Selection) *goquery.Selection
 	}
 
 	if params.Eq != 0 {
-		s = s.Eq(params.Eq - 1)
-	}
-	return s
-}
-
-func (params *FilterParams) eqFinds(s *goquery.Selection) *goquery.Selection {
-	if params.EqFinds != nil {
 		s = s.Eq(params.Eq - 1)
 	}
 	return s
