@@ -16,6 +16,7 @@ type FilterParams struct {
 	First       bool                     `json:"first" yaml:"first"`
 	Html        bool                     `json:"html" yaml:"html"`
 	Eq          int                      `json:"eq" yaml:"eq"`
+	EqFinds     *EqFinds                 `json:"eq_finds" yaml:"eq_finds"`
 	HasClass    string                   `json:"has_class" yaml:"has_class"`
 	Attr        string                   `json:"attr" yaml:"attr"`
 	Splits      []*Split                 `json:"splits" yaml:"splits"`
@@ -23,6 +24,11 @@ type FilterParams struct {
 	NotContains []string                 `json:"not_contains" yaml:"not_contains"`
 	Deletes     []string                 `json:"deletes" yaml:"deletes"`
 	Replaces    []*Replace               `json:"replaces" yaml:"replaces"`
+}
+
+type EqFinds struct {
+	Eq    int      `json:"eq" yaml:"eq"`
+	Finds []string `json:"finds" yaml:"finds"`
 }
 
 type PSC struct {
@@ -155,6 +161,7 @@ func (params *FilterParams) content(dom *goquery.Selection) (ins interface{}) {
 	s = finds(params.Finds, s)
 	s = params.next(s)
 	if params.Type == "list" {
+		s = params.eqFinds(s)
 		resList := make([]interface{}, 0, 10)
 		s.Each(func(i int, ss *goquery.Selection) {
 			ss = finds(params.SubFinds, ss)
@@ -253,6 +260,13 @@ func (params *FilterParams) lastFirstEq(s *goquery.Selection) *goquery.Selection
 	}
 
 	if params.Eq != 0 {
+		s = s.Eq(params.Eq - 1)
+	}
+	return s
+}
+
+func (params *FilterParams) eqFinds(s *goquery.Selection) *goquery.Selection {
+	if params.EqFinds != nil {
 		s = s.Eq(params.Eq - 1)
 	}
 	return s
