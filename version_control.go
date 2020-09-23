@@ -16,13 +16,13 @@ type RuleFields struct {
 }
 
 func ParseHtmlVersion(html string, params []*VersionControl) (res map[string]interface{}, err error) {
-	html = strings.ReplaceAll(html, "\n", "")
+	curHtml := strings.ReplaceAll(html, "\n", "")
 	for i := 0; i < len(params); i++ {
 		reg := regexp.MustCompile(params[i].Rule)
 		if reg == nil {
 			continue
 		}
-		result := reg.FindAllStringSubmatch(html, -1)
+		result := reg.FindAllStringSubmatch(curHtml, -1)
 		if result == nil {
 			if i == len(params) -1 {
 				return res, errors.New("all rules were failed")
