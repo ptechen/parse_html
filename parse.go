@@ -1,9 +1,10 @@
-package parse
+package parse_html
 
 import (
 	"github.com/PuerkitoBio/goquery"
 	"strings"
 )
+
 
 type FilterParams struct {
 	Selector    string                   `json:"selector" yaml:"selector"`

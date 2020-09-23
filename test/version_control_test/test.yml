@@ -1,0 +1,21 @@
+configs:
+  - rule: '<ul>123</ul>'
+    fields:
+      last_test:
+        finds:
+          - 'ul'
+          - 'li'
+        first: true
+        splits:
+          - { key: 'REPLACE ', index: 1, enable: true }
+
+  - rule: '<ul>.*?</ul>'
+    fields:
+      last_test:
+        finds:
+          - 'ul'
+          - 'li'
+        first: true
+        splits:
+          - { key: 'REPLACE ', index: 1, enable: true }
+
