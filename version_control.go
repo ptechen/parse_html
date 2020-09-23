@@ -1,6 +1,7 @@
 package parse_html
 
 import (
+	"errors"
 	"regexp"
 	"strings"
 )
@@ -23,6 +24,9 @@ func ParseHtmlVersion(html string, params []*VersionControl) (res map[string]int
 		}
 		result := reg.FindAllStringSubmatch(html, -1)
 		if result == nil {
+			if i == len(params) -1 {
+				return res, errors.New("all rules were failed")
+			}
 			continue
 		}
 		res, err = ParseHtml(html, params[i].Fields)
