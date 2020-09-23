@@ -29,3 +29,8 @@ func replaces(params[]*Replace, text string) string {
 	}
 	return text
 }
+
+func trimSpace(text string) string {
+	text = strings.TrimSpace(text)
+	return text
+}

@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-
 type FilterParams struct {
 	Selector    string                   `json:"selector" yaml:"selector"`
 	Finds       []string                 `json:"finds" yaml:"finds"`
@@ -130,7 +129,7 @@ func (params *FilterParams) containsList(dom *goquery.Selection) (ins interface{
 	})
 
 	text = params.splitDeletesReplace(text)
-
+	text = trimSpace(text)
 	return text
 }
 
@@ -211,6 +210,7 @@ func (params *FilterParams) content(dom *goquery.Selection) (ins interface{}) {
 	text = params.getText(s)
 	text = params.notContains(text)
 	text = params.splitDeletesReplace(text)
+	text = trimSpace(text)
 	return text
 }
 
