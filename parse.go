@@ -3,6 +3,7 @@ package parse_html
 import (
 	"github.com/PuerkitoBio/goquery"
 	"strings"
+	"sync"
 )
 
 type FilterParams struct {
@@ -62,16 +63,20 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 	if err != nil {
 		return res, err
 	}
+	wg := sync.WaitGroup{}
 	for k, v := range params {
 		res[k] = nil
+		wg.Add(1)
 		go func(k string, v *FilterParams) {
 			if v.Type == "contains_list" {
 				res[k] = v.containsList(dom.Selection)
 			} else {
 				res[k] = v.content(dom.Selection)
 			}
+			wg.Done()
 		}(k, v)
 	}
+	wg.Wait()
 	return res, err
 }
 
