@@ -63,11 +63,14 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 		return res, err
 	}
 	for k, v := range params {
-		if v.Type == "contains_list" {
-			res[k] = v.containsList(dom.Selection)
-		} else {
-			res[k] = v.content(dom.Selection)
-		}
+		res[k] = nil
+		go func(k string, v *FilterParams) {
+			if v.Type == "contains_list" {
+				res[k] = v.containsList(dom.Selection)
+			} else {
+				res[k] = v.content(dom.Selection)
+			}
+		}(k, v)
 	}
 	return res, err
 }
