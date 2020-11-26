@@ -95,14 +95,14 @@ func (params *FilterParams) containsList(dom *goquery.Selection) (ins interface{
 	s = finds(params.Finds, s)
 	s = params.next(s)
 	s.Each(func(i int, ss *goquery.Selection) {
-		lableSelector := ss.Clone()
+		labelSelector := ss.Clone()
 		if len(params.Contains.Finds) > 0 {
 			ss = finds(params.Contains.Finds, ss)
 		}
 		if params.Contains.Eq != 0 {
 			ss = ss.Eq(params.Contains.Eq - 1)
 		}
-		ok := lableHasClass(lableSelector, params.Contains.Label)
+		ok := lableHasClass(labelSelector, params.Contains.Label)
 		if params.Contains.HasClass != "" && params.Contains.Key == "" && params.Contains.HasAttr == nil {
 			flag := ss.HasClass(params.Contains.HasClass)
 			if flag {
