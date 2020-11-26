@@ -58,31 +58,30 @@ type Label struct {
 }
 
 func ParseHtml(html string, params map[string]*FilterParams) (res map[string]interface{}, err error) {
-	res = make(map[string]interface{})
+	data := sync.Map{}
 	dom, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
 		return res, err
 	}
-	for k, v := range params {
-		if v.Type == "contains_list" || v.Type == "list" {
-			res[k] = []string{}
-		} else {
-			res[k] = ""
-		}
-	}
+
 	wg := sync.WaitGroup{}
 	for k, v := range params {
 		wg.Add(1)
 		go func(k string, v *FilterParams) {
 			if v.Type == "contains_list" {
-				res[k] = v.containsList(dom.Selection)
+				data.Store(k, v.containsList(dom.Selection))
 			} else {
-				res[k] = v.content(dom.Selection)
+				data.Store(k, v.content(dom.Selection))
 			}
 			wg.Done()
 		}(k, v)
 	}
 	wg.Wait()
+	res = make(map[string]interface{})
+	data.Range(func(key, value interface{}) bool {
+		res[key.(string)] = value
+		return true
+	})
 	return res, err
 }
 
