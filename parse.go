@@ -70,6 +70,8 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 		} else {
 			res[k] = ""
 		}
+	}
+	for k, v := range params {
 		wg.Add(1)
 		go func(k string, v *FilterParams) {
 			if v.Type == "contains_list" {
