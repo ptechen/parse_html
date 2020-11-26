@@ -63,7 +63,6 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 	if err != nil {
 		return res, err
 	}
-	wg := sync.WaitGroup{}
 	for k, v := range params {
 		if v.Type == "contains_list" || v.Type == "list" {
 			res[k] = []string{}
@@ -71,6 +70,7 @@ func ParseHtml(html string, params map[string]*FilterParams) (res map[string]int
 			res[k] = ""
 		}
 	}
+	wg := sync.WaitGroup{}
 	for k, v := range params {
 		wg.Add(1)
 		go func(k string, v *FilterParams) {
