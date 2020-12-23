@@ -22,6 +22,7 @@ type FilterParams struct {
 	Attr        string                   `json:"attr" yaml:"attr"`
 	Splits      []*Split                 `json:"splits" yaml:"splits"`
 	Contains    *Contain                 `json:"contains" yaml:"contains"`
+	ContainKeys []string                 `json:"contain_keys" yaml:"contain_keys"`
 	NotContains []string                 `json:"not_contains" yaml:"not_contains"`
 	Deletes     []string                 `json:"deletes" yaml:"deletes"`
 	Replaces    []*Replace               `json:"replaces" yaml:"replaces"`
@@ -221,6 +222,7 @@ func (params *FilterParams) content(dom *goquery.Selection) (ins interface{}) {
 
 	s = params.lastFirstEq(s)
 	text = params.getText(s)
+	text = params.containKey(text)
 	text = params.notContains(text)
 	text = params.splitDeletesReplace(text)
 	text = trimSpace(text)
@@ -256,6 +258,19 @@ func (params *FilterParams) notContains(text string) string {
 		for i := 0; i < length; i++ {
 			cur := params.NotContains[i]
 			if strings.Contains(text, cur) {
+				return ""
+			}
+		}
+	}
+	return text
+}
+
+func (params *FilterParams) containKey(text string) string {
+	if len(params.ContainKeys) > 0 {
+		length := len(params.ContainKeys)
+		for i := 0; i < length; i++ {
+			cur := params.ContainKeys[i]
+			if !strings.Contains(text, cur) {
 				return ""
 			}
 		}
